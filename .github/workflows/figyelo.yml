@@ -2,8 +2,8 @@ name: Cinema City figyelo
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
-      timezone: 'Europe/Budapest'
+    - cron: "2-59/5 * * * *"
+      timezone: "Europe/Budapest"
   workflow_dispatch:
 
 permissions:
