@@ -15,6 +15,9 @@ Példák:
     # film figyelése az összes moziban, 10 percenként, 30 napra előre
     python cinemacity_figyelo.py --film "Dűne"
 
+    # több film egyszerre (szóközzel elválasztva, idézőjelek között)
+    python cinemacity_figyelo.py --film "Dűne" "Avatar" "Mátrix"
+
     # csak két mozi, egyszeri futtatás (pl. cronhoz / Feladatütemezőhöz)
     python cinemacity_figyelo.py --film "Dűne" --mozi "Allee,Westend" --egyszer
 
@@ -147,14 +150,14 @@ def notify(title: str, body: str) -> None:
 
 # ------------------------------ fő logika --------------------------------- #
 
-def check(film_query: str, cinema_filter: list[str], days: int,
+def check(film_queries: list[str], cinema_filter: list[str], days: int,
           dates: list[date] | None = None) -> list[dict]:
-    """Visszaadja a keresett filmhez tartozó összes jelenlegi vetítést.
+    """Visszaadja a keresett filmekhez tartozó összes jelenlegi vetítést.
 
     Ha `dates` meg van adva, csak azokat a napokat nézi, különben a mai naptól
     számított `days` napot.
     """
-    q = norm(film_query)
+    qs = [norm(x) for x in film_queries]
     if dates:
         check_days = list(dates)
         horizon = max((d - date.today()).days for d in dates)
@@ -176,7 +179,10 @@ def check(film_query: str, cinema_filter: list[str], days: int,
             films = {f["id"]: f for f in body.get("films", [])}
             for ev in body.get("events", []):
                 film = films.get(ev.get("filmId"))
-                if not film or q not in norm(film.get("name", "")):
+                if not film:
+                    continue
+                name_n = norm(film.get("name", ""))
+                if not any(q in name_n for q in qs):
                     continue
                 found.append({
                     "key": f"{c['id']}:{ev.get('id')}",
@@ -209,8 +215,11 @@ def run_once(args, seen: set[str]) -> set[str]:
 
     stamp = datetime.now().strftime("%H:%M:%S")
     if new:
-        new.sort(key=lambda e: (e["idopont"], e["mozi"]))
-        notify(f"Új vetítés: {args.film} ({len(new)} db)",
+        new.sort(key=lambda e: (e["film"], e["idopont"], e["mozi"]))
+        filmek = ", ".join(sorted({e["film"] for e in new}))
+        if len(filmek) > 70:
+            filmek = filmek[:67] + "..."
+        notify(f"Új vetítés: {filmek} ({len(new)} db)",
                "\n".join(format_event(e) for e in new))
         seen |= {e["key"] for e in new}
         save_state(seen)
@@ -249,7 +258,9 @@ def parse_dates(text: str) -> list[date]:
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Cinema City vetítésfigyelő")
-    p.add_argument("--film", help="a film címének (részlete), ékezetfüggetlenül")
+    p.add_argument("--film", nargs="+",
+                   help="a film(ek) címének részlete, ékezetfüggetlenül; "
+                        "több film szóközzel elválasztva, idézőjelben")
     p.add_argument("--mozi", default="",
                    help="mozi(k) nevének részlete vesszővel elválasztva "
                         "(alapból mind)")
@@ -290,7 +301,7 @@ def main() -> None:
         mikor = ", ".join(d.isoformat() for d in args.datumok)
     else:
         mikor = f"{args.napok} nap"
-    print(f"Figyelés: '{args.film}' | mozi: {args.mozi or 'mind'} | "
+    print(f"Figyelés: '{' / '.join(args.film)}' | mozi: {args.mozi or 'mind'} | "
           f"{mikor} | {args.intervallum} mp", flush=True)
 
     while True:
