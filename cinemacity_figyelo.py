@@ -13,19 +13,28 @@ Példák:
     python cinemacity_figyelo.py --mozik-listazasa
 
     # film figyelése az összes moziban, 10 percenként, 30 napra előre
-    python cinemacity_figyelo.py --film "Dűne"
+    python cinemacity_figyelo.py --film "film_cím"
 
     # több film egyszerre (szóközzel elválasztva, idézőjelek között)
-    python cinemacity_figyelo.py --film "Dűne" "Avatar" "Mátrix"
+    python cinemacity_figyelo.py --film "film_cím_1" "film_cím_2" "film_cím_3"
 
-    # csak két mozi, egyszeri futtatás (pl. cronhoz / Feladatütemezőhöz)
-    python cinemacity_figyelo.py --film "Dűne" --mozi "Allee,Westend" --egyszer
+    # több mozi, egyszeri futtatás (pl. cronhoz / Feladatütemezőhöz)
+    python cinemacity_figyelo.py --film "film_cím" --mozi "Allee,Westend"
 
     # csak egy adott dátum (vagy több, vesszővel; vagy tartomány ..-tal)
-    python cinemacity_figyelo.py --film "Dűne" --datum 2026-12-05
-    python cinemacity_figyelo.py --film "Dűne" --datum 2026-12-05,2026-12-12
-    python cinemacity_figyelo.py --film "Dűne" --datum 2026-12-04..2026-12-06
+    python cinemacity_figyelo.py --film "film_cím" --datum 2026-12-05
+    python cinemacity_figyelo.py --film "film_cím" --datum 2026-12-05,2026-12-12
+    python cinemacity_figyelo.py --film "film_cím" --datum 2026-12-04..2026-12-06
 
+    # csak egyszer
+    --egyszer
+
+    # állapot törlése
+    --allapot-torles
+
+    # lekérés intervallum (másodperc)
+    --intervallum 600
+    
 Értesítési csatornák (mind opcionális, környezeti változókkal):
     NTFY_TOPIC                       -> push értesítés (https://ntfy.sh)
     TELEGRAM_TOKEN, TELEGRAM_CHAT_ID -> Telegram üzenet
@@ -35,7 +44,6 @@ Konzolra mindig kiír.
 FIGYELEM: a Cinema City nem hivatalos, dokumentálatlan API-t használ az
 oldala, ez bármikor változhat. Ha a script hibát jelez, az útvonalakat
 a BASE / list_cinemas / fetch_day függvényekben kell módosítani.
-Ne állítsd túl sűrűre az időközt (ajánlott: 5-15 perc).
 """
 
 import argparse
