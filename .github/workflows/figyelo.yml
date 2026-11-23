@@ -1,0 +1,37 @@
+name: Cinema City figyelo
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cinemacity
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Futtatás
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python cinemacity_figyelo.py --film "dune-harmadik-resz" --mozi "Arena" --datum 2026-12-16 --egyszer
+      - name: Állapot mentése
+        run: |
+          if [ -n "$(git status --porcelain cinemacity_allapot.json)" ]; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add cinemacity_allapot.json
+            git commit -m "allapot frissitese"
+            git push
+          fi
