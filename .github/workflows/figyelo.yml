@@ -25,7 +25,7 @@ jobs:
       - name: Futtatás
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-        run: python cinemacity_figyelo.py --film "dune-harmadik-resz" --mozi "Arena" --datum 2026-12-16 --egyszer
+        run: python cinemacity_figyelo.py --film "dune" --mozi "Arena" --datum 2026-12-16 --egyszer
       - name: Állapot mentése
         run: |
           if [ -n "$(git status --porcelain cinemacity_allapot.json)" ]; then
